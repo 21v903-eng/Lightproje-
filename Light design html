@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧燈控系統設計藍圖</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Microsoft JhengHei', Arial, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+.header {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+  padding: 30px;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.header p {
+  opacity: 0.9;
+  font-size: 16px;
+}
+
+.tabs {
+  display: flex;
+  background: #f5f5f5;
+  border-bottom: 3px solid #667eea;
+}
+
+.tab {
+  flex: 1;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s;
+  border: none;
+  background: none;
+  color: #666;
+}
+
+.tab:hover {
+  background: #e8e8e8;
+}
+
+.tab.active {
+  background: white;
+  color: #667eea;
+  border-bottom: 3px solid #667eea;
+  margin-bottom: -3px;
+}
+
+.content {
+  padding: 40px;
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.canvas-container {
+  background: #fafafa;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px 0;
+  overflow-x: auto;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.legend-color {
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  border: 2px solid #ddd;
+}
+
+.legend-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.specs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.spec-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 25px;
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.spec-card h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spec-card ul {
+  list-style: none;
+  margin-top: 10px;
+}
+
+.spec-card li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  font-size: 14px;
+}
+
+.spec-card li:last-child {
+  border-bottom: none;
+}
+
+.materials {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  margin: 20px 0;
+}
+
+.materials h3 {
+  color: #667eea;
+  font-size: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.material-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.material-item {
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.material-item strong {
+  display: block;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.material-item span {
+  color: #666;
+  font-size: 14px;
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 20px 10px;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.note {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.note h4 {
+  color: #856404;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.note p {
+  color: #856404;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .tabs {
+    flex-direction: column;
+  }
+  
+  .content {
+    padding: 20px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🏠 智慧燈控系統設計藍圖</h1>
+    <p>完整的結構設計、線路配置與元件清單</p>
+  </div>
+  
+  <div class="tabs">
+    <button class="tab active" onclick="showView('structure')">📐 結構設計</button>
+    <button class="tab" onclick="showView('wiring')">🔌 線路配置</button>
+    <button class="tab" onclick="showView('circuit')">⚡ 電路圖</button>
+    <button class="tab" onclick="showView('materials')">📋 元件清單</button>
+  </div>
+  
+  <div class="content">
+    <!-- 結構設計視圖 -->
+    <div id="structure" class="view active">
+      <h2 style="color: #667eea; margin-bottom: 20px;">📐 立體結構設計 (俯視圖)</h2>
+      
+      <div class="specs">
+        <div class="spec-card">
+          <h3>📏 整體尺寸</h3>
+          <ul>
+            <li>長度: 30 cm</li>
+            <li>寬度: 25 cm</li>
+            <li>高度: 20 cm</li>
+            <li>材料厚度: 3-5 mm</li>
+          </ul>
+        </div>
+        
+        <div class="spec-card">
+          <h3>🏡 房間配置</h3>
+          <ul>
+            <li>玄關: 1燈 (5×5cm)</li>
+            <li>客廳: 6燈 (12×10cm)</li>
+            <li>廚房: 2燈 (8×6cm)</li>
+            <li>臥室: 4燈 (10×8cm)</li>
+            <li>浴室: 2燈 (6×6cm)</li>
+          </ul>
+        </div>
+        
+        <div class="spec-card">
+          <h3>💡 LED配置</h3>
+          <ul>
+            <li>LED Pin 2: 玄關</li>
+            <li>LED Pin 4-23: 客廳</li>
+            <li>LED Pin 25-26: 廚房</li>
+            <li>LED Pin 27-33: 臥室</li>
+            <li>LED Pin 13-14: 浴室</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="canvas-container">
+        <canvas id="structureCanvas" width="800" height="600"></canvas>
+      </div>
+      
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: #FFE082;"></div>
+          <div class="legend-text">玄關 (1燈)</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #90CAF9;"></div>
+          <div class="legend-text">客廳 (6燈)</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #A5D6A7;"></div>
+          <div class="legend-text">廚房 (2燈)</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #CE93D8;"></div>
+          <div class="legend-text">臥室 (4燈)</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #FFAB91;"></div>
+          <div class="legend-text">浴室 (2燈)</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #B0BEC5;"></div>
+          <div class="legend-text">電路區 (ESP32)</div>
+        </div>
+      </div>
+      
+      <button class="download-btn" onclick="downloadCanvas('structureCanvas', '結構設計圖.png')">
+        📥 下載結構設計圖
+      </button>
+    </div>
+    
+    <!-- 線路配置視圖 -->
+    <div id="wiring" class="view">
+      <h2 style="color: #667eea; margin-bottom: 20px;">🔌 線路配置圖</h2>
+      
+      <div class="note">
+        <h4>⚠️ 配線注意事項</h4>
+        <p>
+          • 使用不同顏色線材：紅色(5V)、黑色(GND)、其他顏色(GPIO訊號線)<br>
+          • 建議主幹線使用 AWG22，分支線使用 AWG24-26<br>
+          • 每個LED必須串聯220Ω電阻<br>
+          • 建議採用星形配線，便於維修與故障排除
+        </p>
+      </div>
+      
+      <div class="canvas-container">
+        <canvas id="wiringCanvas" width="900" height="700"></canvas>
+      </div>
+      
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: #f44336;"></div>
+          <div class="legend-text">5V 電源線</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #212121;"></div>
+          <div class="legend-text">GND 地線</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #4CAF50;"></div>
+          <div class="legend-text">GPIO 訊號線</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #FFC107;"></div>
+          <div class="legend-text">LED + 電阻</div>
+        </div>
+      </div>
+      
+      <button class="download-btn" onclick="downloadCanvas('wiringCanvas', '線路配置圖.png')">
+        📥 下載線路配置圖
+      </button>
+    </div>
+    
+    <!-- 電路圖視圖 -->
+    <div id="circuit" class="view">
+      <h2 style="color: #667eea; margin-bottom: 20px;">⚡ 電路連接圖</h2>
+      
+      <div class="note">
+        <h4>🔧 接線步驟</h4>
+        <p>
+          1. 先將 ESP32 固定在 PCB 板上<br>
+          2. 連接 5V 電源供應器到 ESP32 的 VIN 和 GND<br>
+          3. 從各 GPIO 腳位接出訊號線，經過 220Ω 電阻後連接到 LED 正極<br>
+          4. 所有 LED 負極統一連接到 GND<br>
+          5. 建議使用端子台或排針方便擴充維修
+        </p>
+      </div>
+      
+      <div class="canvas-container">
+        <canvas id="circuitCanvas" width="900" height="800"></canvas>
+      </div>
+      
+      <div class="specs">
+        <div class="spec-card">
+          <h3>🔋 電源規格</h3>
+          <ul>
+            <li>電壓: DC 5V</li>
+            <li>電流: 2-3A (建議3A)</li>
+            <li>功率: 15W 以上</li>
+            <li>介面: DC插座或USB-C</li>
+          </ul>
+        </div>
+        
+        <div class="spec-card">
+          <h3>💡 LED規格</h3>
+          <ul>
+            <li>類型: 5mm 白光LED</li>
+            <li>工作電壓: 3.0-3.4V</li>
+            <li>工作電流: 20mA</li>
+            <li>限流電阻: 220Ω</li>
+          </ul>
+        </div>
+        
+        <div class="spec-card">
+          <h3>🎛️ ESP32規格</h3>
+          <ul>
+            <li>GPIO: 15個 (PWM輸出)</li>
+            <li>PWM頻率: 5000 Hz</li>
+            <li>解析度: 8-bit (0-255)</li>
+            <li>工作電壓: 3.3V/5V</li>
+          </ul>
+        </div>
+      </div>
+      
+      <button class="download-btn" onclick="downloadCanvas('circuitCanvas', '電路連接圖.png')">
+        📥 下載電路連接圖
+      </button>
+    </div>
+    
+    <!-- 元件清單視圖 -->
+    <div id="materials" class="view">
+      <h2 style="color: #667eea; margin-bottom: 20px;">📋 完整元件清單與採購指南</h2>
+      
+      <div class="materials">
+        <h3>🔧 核心電子元件</h3>
+        <div class="material-grid">
+          <div class="material-item">
+            <strong>ESP32 開發板</strong>
+            <span>數量: 1片<br>參考價: NT$150-250</span>
+          </div>
+          <div class="material-item">
+            <strong>5mm LED 燈珠</strong>
+            <span>數量: 15顆 (白光)<br>參考價: NT$30-50</span>
+          </div>
+          <div class="material-item">
+            <strong>220Ω 電阻</strong>
+            <span>數量: 15顆 (1/4W)<br>參考價: NT$10-20</span>
+          </div>
+          <div class="material-item">
+            <strong>PCB 洞洞板</strong>
+            <span>尺寸: 7×9 cm<br>參考價: NT$30-50</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="materials">
+        <h3>⚡ 電源與保護</h3>
+        <div class="material-grid">
+          <div class="material-item">
+            <strong>5V/3A 電源供應器</strong>
+            <span>輸出: DC 5V 3A<br>參考價: NT$100-150</span>
+          </div>
+          <div class="material-item">
+            <strong>DC 電源插座</strong>
+            <span>規格: 5.5×2.1mm<br>參考價: NT$10-20</span>
+          </div>
+          <div class="material-item">
+            <strong>電源開關</strong>
+            <span>類型: 撥動開關<br>參考價: NT$10-15</span>
+          </div>
+          <div class="material-item">
+            <strong>保險絲座+保險絲</strong>
+            <span>規格: 1A 快熔<br>參考價: NT$20-30</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="materials">
+        <h3>🔌 連接線材</h3>
+        <div class="material-grid">
+          <div class="material-item">
+            <strong>杜邦線</strong>
+            <span>公對公、公對母各20條<br>參考價: NT$50-80</span>
+          </div>
+          <div class="material-item">
+            <strong>單芯線</strong>
+            <span>AWG22/24 各5米<br>參考價: NT$50-100</span>
+          </div>
+          <div class="material-item">
+            <strong>熱縮套管</strong>
+            <span>多種尺寸組合包<br>參考價: NT$50-80</span>
+          </div>
+          <div class="material-item">
+            <strong>端子台</strong>
+            <span>2P/3P 各5個<br>參考價: NT$30-50</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="materials">
+        <h3>🪵 結構材料</h3>
+        <div class="material-grid">
+          <div class="material-item">
+            <strong>夾板/密集板</strong>
+            <span>厚度: 3-5mm<br>尺寸: 30×40cm<br>參考價: NT$50-100</span>
+          </div>
+          <div class="material-item">
+            <strong>M3 螺絲螺帽</strong>
+            <span>數量: 20組<br>參考價: NT$30-50</span>
+          </div>
+          <div class="material-item">
+            <strong>熱熔膠條</strong>
+            <span>數量: 10條<br>參考價: NT$30-50</span>
+          </div>
+          <div class="material-item">
+            <strong>束線帶</strong>
+            <span>數量: 20條<br>參考價: NT$20-30</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="materials">
+        <h3>🛠️ 工具建議</h3>
+        <div class="material-grid">
+          <div class="material-item">
+            <strong>烙鐵組</strong>
+            <span>溫控烙鐵+焊錫<br>參考價: NT$300-500</span>
+          </div>
+          <div class="material-item">
+            <strong>熱熔膠槍</strong>
+            <span>小型手持式<br>參考價: NT$100-200</span>
+          </div>
+          <div class="material-item">
+            <strong>剝線鉗</strong>
+            <span>多功能型<br>參考價: NT$100-150</span>
+          </div>
+          <div class="material-item">
+            <strong>萬用電表</strong>
+            <span>數位式<br>參考價: NT$200-400</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="note">
+        <h4>💰 預算估算</h4>
+        <p>
+          • 電子元件: NT$400-600<br>
+          • 結構材料: NT$150-250<br>
+          • 工具 (如未持有): NT$700-1200<br>
+          <strong>總計約: NT$1250-2050 (不含工具約 NT$550-850)</strong>
+        </p>
+      </div>
+      
+      <div class="note" style="background: #e3f2fd; border-color: #2196f3;">
+        <h4 style="color: #1565c0;">🛒 推薦採購管道</h4>
+        <p style="color: #1565c0;">
+          <strong>台灣:</strong> 露天拍賣、蝦皮購物、飆機器人、iCshop<br>
+          <strong>實體店:</strong> 光華商場、順發3C、建國電子材料街<br>
+          <strong>國際:</strong> AliExpress (較便宜但需等待)<br>
+          <strong>雷切服務:</strong> 各地 Maker Space、FabLab 或線上雷切服務
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 切換視圖
+function showView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+  event.target.classList.add('active');
+  
+  // 重新繪製 canvas
+  if (viewId === 'structure') drawStructure();
+  if (viewId === 'wiring') drawWiring();
+  if (viewId === 'circuit') drawCircuit();
+}
+
+// 繪製結構設計圖
+function drawStructure() {
+  const canvas = document.getElementById('structureCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // 比例尺
+  const scale = 20; // 1cm = 20px
+  const offsetX = 100;
+  const offsetY = 50;
+  
+  // 繪製標題
+  ctx.font = 'bold 18px Microsoft JhengHei';
+  ctx.fillStyle = '#2c3e50';
+  ctx.fillText('俯視圖 (Top View) - 單位: cm', offsetX, 30);
+  
+  // 房間定義
+  const rooms = [
+    {name: '玄關', x: 0, y: 0, w: 5, h: 5, color: '#FFE082', leds: 1, icon: '🚪'},
+    {name: '客廳', x: 6, y: 0, w: 12, h: 10, color: '#90CAF9', leds: 6, icon: '🛋️'},
+    {name: '廚房', x: 19, y: 0, w: 8, h: 6, color: '#A5D6A7', leds: 2, icon: '🍳'},
+    {name: '臥室', x: 6, y: 11, w: 10, h: 8, color: '#CE93D8', leds: 4, icon: '🛏️'},
+    {name: '浴室', x: 17, y: 11, w: 6, h: 6, color: '#FFAB91', leds: 2, icon: '🚿'},
+    {name: 'ESP32\n電路區', x: 0, y: 6, w: 5, h: 13, color: '#B0BEC5', leds: 0, icon: '⚡'}
+  ];
+  
+  // 繪製房間
+  rooms.forEach(room => {
+    const x = offsetX + room.x * scale;
+    const y = offsetY + room.y * scale;
+    const w = room.w * scale;
+    const h = room.h * scale;
+    
+    // 填充顏色
+    ctx.fillStyle = room.color;
+    ctx.fillRect(x, y, w, h);
+    
+    // 邊框
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, w, h);
+    
+    // 房間名稱
+    ctx.fillStyle = '#333';
+    ctx.font = 'bold 14px Microsoft JhengHei';
+    ctx.textAlign = 'center';
+    const lines = room.name.split('\n');
+    lines.forEach((line, i) => {
+      ctx.fillText(line, x + w/2, y + h/2 - 10 + i*18);
+    });
+    
+    // 圖標
+    ctx.font = '20px Arial';
+    ctx.fillText(room.icon, x + w/2, y + h/2 + 20);
+    
+    // LED 數量
+    if (room.leds > 0) {
+      ctx.font = '12px Microsoft JhengHei';
+      ctx.fillText(`${room.leds} 燈`, x + w/2, y + h - 10);
+      
+      // 繪製 LED 位置
+      if (room.leds === 1) {
+        drawLED(ctx, x + w/2, y + h/2, 6);
+      } else {
+        const spacing = w / (room.leds + 1);
+        for (let i = 1; i <= room.leds; i++) {
+          if (room.leds === 6) {
+            // 客廳6燈排列成2x3
+            const row = Math.floor((i-1) / 3);
+            const col = (i-1) % 3;
+            drawLED(ctx, x + w/4 + col * w/3, y + h/3 + row * h/2, 6);
+          } else if (room.leds === 4) {
+            // 臥室4燈排列成2x2
+            const row = Math.floor((i-1) / 2);
+            const col = (i-1) % 2;
+            drawLED(ctx, x + w/3 + col * w/3, y + h/3 + row * h/2, 6);
+          } else {
+            drawLED(ctx, x + i * spacing, y + h/2, 6);
+          }
+        }
+      }
+    }
+  });
+  
+  // 繪製尺寸標註
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 1;
+  ctx.fillStyle = '#666';
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'center';
+  
+  // 寬度標註
+  drawDimension(ctx, offsetX, offsetY + 25*scale + 20, offsetX + 27*scale, offsetY + 25*scale + 20, '30 cm');
+  
+  // 高度標註
+  ctx.save();
+  ctx.translate(offsetX - 30, offsetY + 12.5*scale);
+  ctx.rotate(-Math.PI/2);
+  drawDimension(ctx, -12.5*scale, 0, 12.5*scale, 0, '25 cm');
+  ctx.restore();
+}
+
+function drawLED(ctx, x, y, radius) {
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = '#FFD700';
+  ctx.fill();
+  ctx.strokeStyle = '#FF8C00';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawDimension(ctx, x1, y1, x2, y2, text) {
+  // 畫線
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  
+  // 畫箭頭
+  const arrowSize = 8;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 + arrowSize, y1 - arrowSize/2);
+  ctx.lineTo(x1 + arrowSize, y1 + arrowSize/2);
+  ctx.closePath();
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - arrowSize, y2 - arrowSize/2);
+  ctx.lineTo(x2 - arrowSize, y2 + arrowSize/2);
+  ctx.closePath();
+  ctx.fill();
+  
+  // 文字
+  ctx.fillText(text, (x1 + x2) / 2, y1 - 5);
+}
+
+// 繪製線路配置圖
+function drawWiring() {
+  const canvas = document.getElementById('wiringCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // 標題
+  ctx.font = 'bold 18px Microsoft JhengHei';
+  ctx.fillStyle = '#2c3e50';
+  ctx.fillText('線路配置圖 - 星形配線方案', 50, 30);
+  
+  // ESP32 位置
+  const esp32X = 450;
+  const esp32Y = 350;
+  
+  // 繪製 ESP32
+  ctx.fillStyle = '#4CAF50';
+  ctx.fillRect(esp32X - 50, esp32Y - 40, 100, 80);
+  ctx.strokeStyle = '#2E7D32';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(esp32X - 50, esp32Y - 40, 100, 80);
+  
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 14px Microsoft JhengHei';
+  ctx.textAlign = 'center';
+  ctx.fillText('ESP32', esp32X, esp32Y - 5);
+  ctx.font = '12px Microsoft JhengHei';
+  ctx.fillText('開發板', esp32X, esp32Y + 15);
+  
+  // 電源供應器
+  const powerX = 150;
+  const powerY = 350;
+  ctx.fillStyle = '#f44336';
+  ctx.fillRect(powerX - 50, powerY - 30, 100, 60);
+  ctx.strokeStyle = '#c62828';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(powerX - 50, powerY - 30, 100, 60);
+  
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 14px Microsoft JhengHei';
+  ctx.fillText('5V/3A', powerX, powerY - 5);
+  ctx.font = '12px Microsoft JhengHei';
+  ctx.fillText('電源供應器'
